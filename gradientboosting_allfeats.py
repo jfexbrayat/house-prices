@@ -7,7 +7,7 @@ using out of box features
 #first import useful modules
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 from sklearn.model_selection import train_test_split, GridSearchCV
 
 def msle(true,pred):
@@ -36,13 +36,15 @@ X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=.3,random_stat
 #define parameters
 param_grid = {'min_samples_leaf': np.arange(10,41,5),
               "max_features": ['auto','sqrt','log2'],
-              "n_estimators": [100,300,500]}
-grid = GridSearchCV(RandomForestRegressor(),param_grid = param_grid,verbose = True)
+              "learning_rate":[0.01,.02,.05]}
+grid = GridSearchCV(GradientBoostingRegressor(n_estimators=1000),param_grid = param_grid,verbose = True,scoring='neg_mean_squared_log_error')
 grid.fit(X_train,y_train)
+
+print(grid.best_params_)
 
 model = grid.best_estimator_
 
-print(msle(y_train,model.predict(X_train)))
-print(msle(y_test,model.predict(X_test)))
+print(msle(y_train,model.predict(X_train))**(1/2))
+print(msle(y_test,model.predict(X_test))**(1/2))
 
 df_pred = pd.DataFrame(model.predict(X_pred),index=X_pred.index,columns=['SalePrice'])
